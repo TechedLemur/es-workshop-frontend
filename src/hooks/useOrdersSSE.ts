@@ -34,6 +34,18 @@ export function useOrdersSSE(
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
+    setGraphData(initialGraphData);
+  }, [initialGraphData]);
+
+  useEffect(() => {
+    setRecentOrders(initialRecentOrders);
+  }, [initialRecentOrders]);
+
+  useEffect(() => {
+    setPopularItems(initialPopularItems);
+  }, [initialPopularItems]);
+
+  useEffect(() => {
     if (!apiUrl) return;
 
     const es = new EventSource(`${apiUrl}/orders/live`);

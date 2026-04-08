@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { ProductGrid } from "./ProductGrid";
 import CartWrapper from "./CartWrapper";
 import { API_VERSION } from "@/queries";
@@ -30,13 +30,7 @@ export default function Shop({
 
         {/* Cart Section - Right side on desktop, bottom on mobile */}
         <div className="relative lg:sticky lg:top-8 lg:h-fit lg:w-96">
-          <Suspense fallback={<div>Loading cart...</div>}>
-            <CartWrapper
-              allowTimeTravel={allowTimeTravel}
-              searchParams={searchParams}
-              version={version}
-            />
-          </Suspense>
+          <CartWrapper allowTimeTravel={allowTimeTravel} version={version} />
         </div>
       </div>
     </div>

@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Trash2Icon } from "lucide-react";
 import { type Cart as CartType } from "@/types";
 import { toast } from "sonner";
-import { checkout, removeItemFromCart } from "@/actions";
+import { checkout, removeItemFromCart } from "@/queries";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { revalidateCartEventually } from "@/lib/revalidateCartEventually";
 
 type CartProps = {
   cartId: string;
@@ -13,18 +15,43 @@ type CartProps = {
 
 export function Cart({ cartId, cart }: CartProps) {
   const { items, total } = cart;
+  const queryClient = useQueryClient();
+
+  const removeItemMutation = useMutation({
+    mutationFn: async (itemId: string) => {
+      await removeItemFromCart(cartId, itemId);
+    },
+    onSuccess: async () => {
+      await revalidateCartEventually(queryClient, cartId);
+      toast.success("Item removed from cart");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to remove item");
+    },
+  });
+
+  const checkoutMutation = useMutation({
+    mutationFn: async () => checkout(cartId),
+    onSuccess: (result) => {
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        toast.error(result.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to checkout");
+    },
+  });
+
   const handleRemoveItem = async (itemId: string) => {
-    await removeItemFromCart(cartId, itemId);
-    toast.success("Item removed from cart");
+    await removeItemMutation.mutateAsync(itemId);
   };
+
   const handleCheckout = async () => {
-    const result = await checkout(cartId);
-    if (result.success) {
-      toast.success(result.message);
-    } else {
-      toast.error(result.message);
-    }
+    await checkoutMutation.mutateAsync();
   };
+
   const currency = items.find((item) => item.productCurrency)?.productCurrency;
   return (
     <Card className="h-fit">
@@ -56,6 +83,7 @@ export function Cart({ cartId, cart }: CartProps) {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
+                      disabled={removeItemMutation.isPending}
                       aria-label={`Remove ${item.productName} from cart`}
                     >
                       <Trash2Icon className="h-4 w-4" />
@@ -72,7 +100,11 @@ export function Cart({ cartId, cart }: CartProps) {
                 </span>
               </div>
             </div>
-            <Button className="w-full" onClick={handleCheckout}>
+            <Button
+              className="w-full"
+              onClick={handleCheckout}
+              disabled={checkoutMutation.isPending}
+            >
               Checkout
             </Button>
           </>

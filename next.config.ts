@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ hostname: "images.unsplash.com" }],
   },
   output: "standalone",
+  transpilePackages: ["@t3-oss/env-nextjs", "@t3-oss/env-core"],
 };
 
 export default nextConfig;

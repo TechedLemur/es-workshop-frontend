@@ -1,6 +1,5 @@
 "use client";
 
-import { addItemToCart } from "@/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,24 +10,46 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Product } from "@/types";
+import { addItemToCart, API_VERSION } from "@/queries";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { revalidateCartEventually } from "@/lib/revalidateCartEventually";
 
 type ProductCardProps = {
   product: Product;
+  version: API_VERSION;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, version }: ProductCardProps) {
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const cartId = searchParams.get("cartId");
+
+  const addToCartMutation = useMutation({
+    mutationFn: async () => {
+      if (!cartId) {
+        throw new Error("Cart ID is required");
+      }
+      await addItemToCart(cartId, product.id, version);
+    },
+    onSuccess: async () => {
+      if (!cartId) return;
+      await revalidateCartEventually(queryClient, cartId);
+      toast.success("Item added to cart");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to add item to cart");
+    },
+  });
+
   const handleSubmit = async () => {
     if (!cartId) {
       toast.error("Cart ID is required");
       return;
     }
-    await addItemToCart(cartId, product.id);
-    toast.success("Item added to cart");
+    await addToCartMutation.mutateAsync();
   };
   return (
     <Card className="flex h-full flex-col">
@@ -52,7 +73,11 @@ export function ProductCard({ product }: ProductCardProps) {
         </p>
       </CardContent>
       <CardFooter>
-        <Button className="w-full" onClick={handleSubmit} disabled={!cartId}>
+        <Button
+          className="w-full"
+          onClick={handleSubmit}
+          disabled={!cartId || addToCartMutation.isPending}
+        >
           Add to Cart
         </Button>
       </CardFooter>
