@@ -6,17 +6,15 @@ import TimeTravelSlider from "./TimeTravelSlider";
 import TimeTravelToggle from "./TimeTravelToggle";
 
 export default function Shop({
-  searchParams,
   allowTimeTravel = true,
   version = "v1",
 }: {
-  searchParams: Promise<{ [key: string]: string | undefined }>;
   allowTimeTravel?: boolean;
   version?: API_VERSION;
 }) {
   return (
     <div className="relative">
-      {allowTimeTravel && <TimeTravelSlider searchParams={searchParams} />}
+      {allowTimeTravel && <TimeTravelSlider />}
       {allowTimeTravel && (
         <div className="absolute -top-6 right-0 md:-top-16">
           <TimeTravelToggle />

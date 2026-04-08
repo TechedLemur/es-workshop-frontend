@@ -1,11 +1,5 @@
 import Shop from "@/components/Shop";
 
-export default function page({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | undefined }>;
-}) {
-  return (
-    <Shop searchParams={searchParams} version="v2" allowTimeTravel={false} />
-  );
+export default function Page() {
+  return <Shop version="v2" allowTimeTravel={false} />;
 }

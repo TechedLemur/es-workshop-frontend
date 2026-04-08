@@ -1,21 +1,30 @@
+"use client";
+
 import React from "react";
 import { Slider } from "./ui/slider";
-import { getLastEventRevision } from "@/queries";
+import { getLastEventRevision, queryKeys } from "@/queries";
+import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 
-export default async function TimeTravelSlider({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | undefined }>;
-}) {
-  const { cartId, timeTravelEnabled } = await searchParams;
+export default function TimeTravelSlider() {
+  const searchParams = useSearchParams();
+  const cartId = searchParams.get("cartId");
+  const timeTravelEnabled = searchParams.get("timeTravelEnabled");
   const doTimeTravel = timeTravelEnabled === "true";
-  if (!cartId || !doTimeTravel) {
+
+  const { data: lastEventRevision } = useQuery({
+    queryKey: queryKeys.lastEventRevision(cartId ?? ""),
+    queryFn: () => {
+      if (!cartId) return undefined;
+      return getLastEventRevision(cartId);
+    },
+    enabled: doTimeTravel && Boolean(cartId),
+  });
+
+  if (!cartId || !doTimeTravel || lastEventRevision === undefined) {
     return null;
   }
-  const lastEventRevision = await getLastEventRevision(cartId);
-  if (!lastEventRevision) {
-    return null;
-  }
+
   return (
     <Slider key={lastEventRevision} min={0} max={lastEventRevision} step={1} />
   );

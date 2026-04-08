@@ -14,6 +14,13 @@ function isCartQueryForCartId(queryKey: readonly unknown[], cartId: string) {
   return params.cartId === cartId;
 }
 
+function isLastEventRevisionQueryForCartId(
+  queryKey: readonly unknown[],
+  cartId: string,
+) {
+  return queryKey[0] === "last-event-revision" && queryKey[1] === cartId;
+}
+
 // Handles eventual consistency by refetching active cart queries a few times.
 // Better approaches could be to use a websocket or a pub/sub system.
 // We could also use the revision of the cart and revalidate until we reach the newest revision.
@@ -29,7 +36,9 @@ export async function revalidateCartEventually(
     }
 
     await queryClient.invalidateQueries({
-      predicate: (query) => isCartQueryForCartId(query.queryKey, cartId),
+      predicate: (query) =>
+        isCartQueryForCartId(query.queryKey, cartId) ||
+        isLastEventRevisionQueryForCartId(query.queryKey, cartId),
       refetchType: "active",
     });
   }
