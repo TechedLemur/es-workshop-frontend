@@ -28,7 +28,7 @@ export async function revalidateCartEventually(
   queryClient: QueryClient,
   cartId: string,
 ) {
-  const delays = [0, 0];
+  const delays = [10];
 
   for (const waitMs of delays) {
     if (waitMs > 0) {
