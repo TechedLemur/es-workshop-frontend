@@ -27,8 +27,9 @@ function isLastEventRevisionQueryForCartId(
 export async function revalidateCartEventually(
   queryClient: QueryClient,
   cartId: string,
+  delayMs: number,
 ) {
-  const delays = [10];
+  const delays = [delayMs];
 
   for (const waitMs of delays) {
     if (waitMs > 0) {

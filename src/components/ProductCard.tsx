@@ -26,6 +26,11 @@ export function ProductCard({ product, version }: ProductCardProps) {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const cartId = searchParams.get("cartId");
+  const delay = searchParams.get("delay")
+    ? parseInt(searchParams.get("delay") || "10")
+    : 10;
+
+  console.log("delay", delay);
 
   const addToCartMutation = useMutation({
     mutationFn: async () => {
@@ -36,7 +41,7 @@ export function ProductCard({ product, version }: ProductCardProps) {
     },
     onSuccess: async () => {
       if (!cartId) return;
-      await revalidateCartEventually(queryClient, cartId);
+      await revalidateCartEventually(queryClient, cartId, delay);
       toast.success("Item added to cart");
     },
     onError: (error) => {

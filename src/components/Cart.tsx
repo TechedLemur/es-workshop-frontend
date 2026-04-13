@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { checkout, removeItemFromCart } from "@/queries";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { revalidateCartEventually } from "@/lib/revalidateCartEventually";
+import { useSearchParams } from "next/navigation";
 
 type CartProps = {
   cartId: string;
@@ -16,13 +17,16 @@ type CartProps = {
 export function Cart({ cartId, cart }: CartProps) {
   const { items, total } = cart;
   const queryClient = useQueryClient();
-
+  const searchParams = useSearchParams();
+  const delay = searchParams.get("delay")
+    ? parseInt(searchParams.get("delay") || "10")
+    : 10;
   const removeItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
       await removeItemFromCart(cartId, itemId);
     },
     onSuccess: async () => {
-      await revalidateCartEventually(queryClient, cartId);
+      await revalidateCartEventually(queryClient, cartId, delay);
       toast.success("Item removed from cart");
     },
     onError: (error) => {
